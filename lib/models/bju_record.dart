@@ -8,6 +8,7 @@ class BjuRecord {
   final double carbs;
   final double calories;
   final DateTime dateTime;
+  final String mealType;
 
   BjuRecord({
     this.id,
@@ -19,6 +20,7 @@ class BjuRecord {
     required this.carbs,
     required this.calories,
     required this.dateTime,
+    this.mealType = 'Snack',
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +34,7 @@ class BjuRecord {
       'carbs': carbs,
       'calories': calories,
       'dateTime': dateTime.toIso8601String(),
+      'mealType': mealType,
     };
   }
 
@@ -46,6 +49,7 @@ class BjuRecord {
       carbs: map['carbs'] as double,
       calories: map['calories'] as double,
       dateTime: DateTime.parse(map['dateTime'] as String),
+      mealType: map['mealType'] as String? ?? 'Snack',
     );
   }
 
@@ -59,6 +63,7 @@ class BjuRecord {
     double? carbs,
     double? calories,
     DateTime? dateTime,
+    String? mealType,
   }) {
     return BjuRecord(
       id: id ?? this.id,
@@ -70,6 +75,7 @@ class BjuRecord {
       carbs: carbs ?? this.carbs,
       calories: calories ?? this.calories,
       dateTime: dateTime ?? this.dateTime,
+      mealType: mealType ?? this.mealType,
     );
   }
 }

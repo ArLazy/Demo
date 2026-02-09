@@ -89,9 +89,65 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return grouped;
   }
 
+  final mealOrder = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+
+  Map<String, List<BjuRecord>> _groupRecordsByMealType(
+      List<BjuRecord> dayRecords) {
+    final grouped = <String, List<BjuRecord>>{};
+
+    for (var record in dayRecords) {
+      if (!grouped.containsKey(record.mealType)) {
+        grouped[record.mealType] = [];
+      }
+      grouped[record.mealType]!.add(record);
+    }
+
+    final sortedGrouped = <String, List<BjuRecord>>{};
+    for (var mealType in mealOrder) {
+      if (grouped.containsKey(mealType)) {
+        final sortedList = List<BjuRecord>.from(grouped[mealType]!)
+          ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+        sortedGrouped[mealType] = sortedList;
+      }
+    }
+
+    return sortedGrouped;
+  }
+
+  String _getMealEmoji(String mealType) {
+    switch (mealType) {
+      case 'Breakfast':
+        return '🍳';
+      case 'Lunch':
+        return '🍱';
+      case 'Dinner':
+        return '🍽️';
+      case 'Snack':
+        return '🍎';
+      default:
+        return '🍽️';
+    }
+  }
+
   Map<String, dynamic> _calculateDailyTotals(List<BjuRecord> dayRecords) {
     double protein = 0, fat = 0, carbs = 0, calories = 0;
     for (var record in dayRecords) {
+      protein += record.protein;
+      fat += record.fat;
+      carbs += record.carbs;
+      calories += record.calories;
+    }
+    return {
+      'protein': protein,
+      'fat': fat,
+      'carbs': carbs,
+      'calories': calories,
+    };
+  }
+
+  Map<String, dynamic> _calculateMealTotals(List<BjuRecord> records) {
+    double protein = 0, fat = 0, carbs = 0, calories = 0;
+    for (var record in records) {
       protein += record.protein;
       fat += record.fat;
       carbs += record.carbs;
@@ -218,23 +274,194 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final grouped = _groupRecordsByDate();
     final selectedDateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
-    // Filter to show only the selected date
     if (!grouped.containsKey(selectedDateKey)) {
       return _buildEmptyStateForDate();
     }
 
     final dayRecords = grouped[selectedDateKey]!;
+    final mealGrouped = _groupRecordsByMealType(dayRecords);
     final totals = _calculateDailyTotals(dayRecords);
     final isToday =
         DateFormat('yyyy-MM-dd').format(DateTime.now()) == selectedDateKey;
 
+    final List<Widget> children = [];
+    children.add(_buildDateHeader(_selectedDate, isToday, totals));
+    children.add(const SizedBox(height: 16));
+
+    for (var mealType in mealOrder) {
+      final hasEntries = mealGrouped[mealType]?.isNotEmpty ?? false;
+      final mealTotals = hasEntries
+          ? _calculateMealTotals(mealGrouped[mealType]!)
+          : <String, dynamic>{};
+      children.add(_buildMealTypeHeader(mealType, hasEntries, mealTotals));
+      children.add(const SizedBox(height: 8));
+      if (hasEntries) {
+        for (var record in mealGrouped[mealType]!) {
+          children.add(_buildRecordCard(record));
+        }
+      } else {
+        children.add(_buildNoEntriesCard(mealType));
+      }
+      children.add(const SizedBox(height: 12));
+    }
+
     return ListView(
       padding: const EdgeInsets.all(16),
+      children: children,
+    );
+  }
+
+  Widget _buildMealTypeHeader(
+      String mealType, bool hasEntries, Map<String, dynamic> totals) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF4CAF50).withOpacity(hasEntries ? 0.15 : 0.05),
+            const Color(0xFF4CAF50).withOpacity(hasEntries ? 0.05 : 0.02),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          left: BorderSide(
+            color: const Color(0xFF4CAF50).withOpacity(hasEntries ? 0.6 : 0.3),
+            width: 3,
+          ),
+        ),
+      ),
+      child: hasEntries
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_getMealEmoji(mealType),
+                        style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Text(
+                      mealType,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4CAF50),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildCompactMacro(
+                        '🔥',
+                        '${totals['calories'].toStringAsFixed(0)}',
+                        const Color(0xFF66BB6A)),
+                    const SizedBox(width: 12),
+                    _buildCompactMacro(
+                        'P',
+                        '${totals['protein'].toStringAsFixed(1)}g',
+                        const Color(0xFFEF5350)),
+                    const SizedBox(width: 6),
+                    _buildCompactMacro(
+                        'F',
+                        '${totals['fat'].toStringAsFixed(1)}g',
+                        const Color(0xFFFFB74D)),
+                    const SizedBox(width: 6),
+                    _buildCompactMacro(
+                        'C',
+                        '${totals['carbs'].toStringAsFixed(1)}g',
+                        const Color(0xFF42A5F5)),
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_getMealEmoji(mealType),
+                    style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Text(
+                  mealType,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white38,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '- No entries',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white38,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildCompactMacro(String label, String value, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _buildDateHeader(_selectedDate, isToday, totals),
-        const SizedBox(height: 12),
-        ...dayRecords.map((record) => _buildRecordCard(record)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Colors.white70,
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildNoEntriesCard(String mealType) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.05),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.remove_circle_outline_rounded,
+            size: 16,
+            color: Colors.white.withOpacity(0.2),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'No entries for this meal',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.25),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

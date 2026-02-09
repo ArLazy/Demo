@@ -56,13 +56,16 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
       onOpen: (db) async {
         debugPrint('Database opened successfully at: $path');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         debugPrint('Database upgrade from $oldVersion to $newVersion');
+        if (oldVersion < 2) {
+          await _addMealTypeColumn(db);
+        }
       },
     );
   }
@@ -94,12 +97,32 @@ class DatabaseHelper {
         carbs REAL NOT NULL,
         calories REAL NOT NULL,
         dateTime TEXT NOT NULL,
+        mealType TEXT NOT NULL DEFAULT 'Snack',
         FOREIGN KEY (productId) REFERENCES products (id)
       )
     ''');
 
     await _insertPreInstalledProducts(db);
     debugPrint('Database tables created successfully');
+  }
+
+  Future<void> _addMealTypeColumn(Database db) async {
+    try {
+      final tableInfo = await db.rawQuery('PRAGMA table_info(bju_records)');
+      final hasMealTypeColumn =
+          tableInfo.any((column) => column['name'] == 'mealType');
+
+      if (!hasMealTypeColumn) {
+        debugPrint('Adding mealType column to bju_records table...');
+        await db.execute(
+            'ALTER TABLE bju_records ADD COLUMN mealType TEXT NOT NULL DEFAULT "Snack"');
+        debugPrint('mealType column added successfully');
+      } else {
+        debugPrint('mealType column already exists');
+      }
+    } catch (e) {
+      debugPrint('Error adding mealType column: $e');
+    }
   }
 
   Future<void> _insertPreInstalledProducts(Database db) async {

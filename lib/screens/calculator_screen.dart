@@ -20,6 +20,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   DateTime _selectedDate = DateTime.now();
+  String _selectedMealType = 'Snack';
 
   @override
   void initState() {
@@ -116,6 +117,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         carbs: double.parse(_calculatedBJU!['carbs']),
         calories: double.parse(_calculatedBJU!['calories']),
         dateTime: _selectedDate,
+        mealType: _selectedMealType,
       );
 
       await _dbHelper.insertBjuRecord(record);
@@ -126,6 +128,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _selectedProduct = null;
         _calculatedBJU = null;
         _selectedDate = DateTime.now();
+        _selectedMealType = 'Snack';
       });
 
       if (mounted) {
@@ -222,6 +225,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           _buildProductSelector(),
           const SizedBox(height: 24),
           _buildDateSelector(),
+          const SizedBox(height: 24),
+          _buildMealTypeSelector(),
           const SizedBox(height: 24),
           _buildGramsInput(),
           const SizedBox(height: 24),
@@ -475,6 +480,115 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealTypeSelector() {
+    final mealTypes = [
+      {'name': 'Breakfast', 'emoji': '🍳'},
+      {'name': 'Lunch', 'emoji': '🍱'},
+      {'name': 'Dinner', 'emoji': '🍽️'},
+      {'name': 'Snack', 'emoji': '🍎'},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.restaurant_rounded,
+                color: Color(0xFF4CAF50),
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Meal Type',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: mealTypes.map((meal) {
+              final isSelected = _selectedMealType == meal['name'];
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedMealType = meal['name'] as String;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF4CAF50).withOpacity(0.2)
+                        : const Color(0xFF3A3A3A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF4CAF50)
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<String>(
+                        value: meal['name'] as String,
+                        groupValue: _selectedMealType,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedMealType = value!;
+                          });
+                        },
+                        activeColor: const Color(0xFF4CAF50),
+                        fillColor: WidgetStateProperty.resolveWith<Color>(
+                          (states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return const Color(0xFF4CAF50);
+                            }
+                            return Colors.grey;
+                          },
+                        ),
+                      ),
+                      Text(
+                        meal['emoji'] as String,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        meal['name'] as String,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
