@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/FlutterProj/DemoTest/Demo/build/windows/x64/cmake_install.cmake",
+		"D:/FlutterProj/DemoTest/Demo/build/windows/x64/flutter/cmake_install.cmake",
+		"D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

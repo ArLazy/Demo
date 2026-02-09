@@ -1,0 +1,16 @@
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/icudtl.dat
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/flutter_windows.dll
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/sqlite3.x64.windows.dll
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/AssetManifest.bin
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Inter-Bold.ttf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Inter-Medium.ttf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Inter-Regular.ttf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Inter-SemiBold.ttf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/FontManifest.json
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/fonts/MaterialIcons-Regular.otf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/kernel_blob.bin
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/NativeAssetsManifest.json
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/NOTICES.Z
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/shaders/ink_sparkle.frag
+D:/FlutterProj/DemoTest/Demo/build/windows/x64/runner/Debug/data/flutter_assets/shaders/stretch_effect.frag

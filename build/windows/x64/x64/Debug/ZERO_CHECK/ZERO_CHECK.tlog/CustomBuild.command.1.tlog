@@ -1,0 +1,10 @@
+^D:\FLUTTERPROJ\DEMOTEST\DEMO\BUILD\WINDOWS\X64\CMAKEFILES\5E7A7BFED27A4B1011CE2F1F3B6D1FCE\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/FlutterProj/DemoTest/Demo/windows -BD:/FlutterProj/DemoTest/Demo/build/windows/x64 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/FlutterProj/DemoTest/Demo/build/windows/x64/bju_calculator.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
