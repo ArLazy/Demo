@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/product.dart';
 import '../models/bju_record.dart';
@@ -18,6 +19,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Map<String, dynamic>? _calculatedBJU;
   bool _isLoading = true;
   String? _errorMessage;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -89,7 +91,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         fat: double.parse(_calculatedBJU!['fat']),
         carbs: double.parse(_calculatedBJU!['carbs']),
         calories: double.parse(_calculatedBJU!['calories']),
-        dateTime: DateTime.now(),
+        dateTime: _selectedDate,
       );
 
       await _dbHelper.insertBjuRecord(record);
@@ -99,6 +101,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _gramsController.clear();
         _selectedProduct = null;
         _calculatedBJU = null;
+        _selectedDate = DateTime.now();
       });
 
       if (mounted) {
@@ -193,6 +196,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildProductSelector(),
+          const SizedBox(height: 24),
+          _buildDateSelector(),
           const SizedBox(height: 24),
           _buildGramsInput(),
           const SizedBox(height: 24),
@@ -321,6 +326,100 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       _calculatedBJU = null;
                     });
                   },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateSelector() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                color: Color(0xFF4CAF50),
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Select Date',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime(2024),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.dark(
+                        primary: Color(0xFF4CAF50),
+                        onPrimary: Colors.white,
+                        surface: Color(0xFF2A2A2A),
+                        onSurface: Colors.white,
+                      ),
+                      dialogTheme: const DialogThemeData(
+                          backgroundColor: Color(0xFF1A1A1A)),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (date != null) {
+                setState(() => _selectedDate = date);
+              }
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3A3A3A),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_month,
+                    color: Color(0xFF4CAF50),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Color(0xFF9E9E9E),
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
