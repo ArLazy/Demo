@@ -82,6 +82,30 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Future<void> _saveCalculation() async {
     if (_calculatedBJU == null || _selectedProduct == null) return;
 
+    // Validate that the selected date is not in the future
+    if (_selectedDate.isAfter(DateTime.now())) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 12),
+                Text('You cannot record a meal for a future date'),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+      return;
+    }
+
     try {
       final record = BjuRecord(
         productId: _selectedProduct!.id!,
@@ -367,7 +391,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 context: context,
                 initialDate: _selectedDate,
                 firstDate: DateTime(2024),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
+                lastDate: DateTime.now(),
                 builder: (context, child) {
                   return Theme(
                     data: Theme.of(context).copyWith(
