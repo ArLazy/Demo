@@ -151,11 +151,17 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
+  void _switchToCalculatorTab() {
+    setState(() {
+      _currentIndex = 1;
+    });
+  }
+
+  late final List<Widget> _screens = [
     const HomeScreen(),
     const CalculatorScreen(),
     const ProductsScreen(),
-    const HistoryScreen(),
+    HistoryScreen(onSwitchToCalculator: _switchToCalculatorTab),
   ];
 
   @override

@@ -4,7 +4,12 @@ import '../database/database_helper.dart';
 import '../models/bju_record.dart';
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  final VoidCallback onSwitchToCalculator;
+
+  const HistoryScreen({
+    super.key,
+    required this.onSwitchToCalculator,
+  });
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -159,48 +164,52 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Text(
-              '📋',
-              style: TextStyle(fontSize: 64),
-            ),
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text(
+                  '📋',
+                  style: TextStyle(fontSize: 64),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'No History Yet',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Start calculating BJU values\nand they will appear here',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: widget.onSwitchToCalculator,
+                icon: const Icon(Icons.calculate_rounded),
+                label: const Text('Calculate Now'),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          const Text(
-            'No History Yet',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Start calculating BJU values\nand they will appear here',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.6),
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(context, '/calculator');
-            },
-            icon: const Icon(Icons.calculate_rounded),
-            label: const Text('Calculate Now'),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -230,51 +239,62 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildEmptyStateForDate() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Text(
-              '📅',
-              style: TextStyle(fontSize: 64),
-            ),
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text(
+                  '📅',
+                  style: TextStyle(fontSize: 64),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No Records for ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Try selecting a different date\nor add new calculations',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _selectedDate = DateTime.now();
+                  });
+                },
+                icon: const Icon(Icons.today),
+                label: const Text('Go to Today'),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: widget.onSwitchToCalculator,
+                icon: const Icon(Icons.calculate_rounded),
+                label: const Text('Calculate Now'),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'No Records for ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Try selecting a different date\nor add new calculations',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.6),
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _selectedDate = DateTime.now();
-              });
-            },
-            icon: const Icon(Icons.today),
-            label: const Text('Go to Today'),
-          ),
-        ],
+        ),
       ),
     );
   }
