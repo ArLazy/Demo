@@ -375,7 +375,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
               SizedBox(width: 8),
               Text(
-                'Select Date',
+                'Select Date and Time',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -387,6 +387,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           const SizedBox(height: 12),
           InkWell(
             onTap: () async {
+              // Show date picker first
               final date = await showDatePicker(
                 context: context,
                 initialDate: _selectedDate,
@@ -409,7 +410,37 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 },
               );
               if (date != null) {
-                setState(() => _selectedDate = date);
+                // Show time picker after date is selected
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: const ColorScheme.dark(
+                          primary: Color(0xFF4CAF50),
+                          onPrimary: Colors.white,
+                          surface: Color(0xFF2A2A2A),
+                          onSurface: Colors.white,
+                        ),
+                        dialogTheme: const DialogThemeData(
+                            backgroundColor: Color(0xFF1A1A1A)),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (time != null) {
+                  // Combine date and time
+                  final newDateTime = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    time.hour,
+                    time.minute,
+                  );
+                  setState(() => _selectedDate = newDateTime);
+                }
               }
             },
             borderRadius: BorderRadius.circular(12),
@@ -429,7 +460,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
+                      DateFormat('MMM d, yyyy, HH:mm').format(_selectedDate),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
