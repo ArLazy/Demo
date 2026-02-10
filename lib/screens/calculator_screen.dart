@@ -404,96 +404,150 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          InkWell(
-            onTap: () async {
-              // Show date picker first
-              final date = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime(2024),
-                lastDate: DateTime.now(),
-                builder: (context, child) {
-                  return Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: const ColorScheme.dark(
-                        primary: Color(0xFF4CAF50),
-                        onPrimary: Colors.white,
-                        surface: Color(0xFF2A2A2A),
-                        onSurface: Colors.white,
-                      ),
-                      dialogTheme: const DialogThemeData(
-                          backgroundColor: Color(0xFF1A1A1A)),
-                    ),
-                    child: child!,
-                  );
-                },
-              );
-              if (date != null) {
-                // Show time picker after date is selected
-                final time = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay.fromDateTime(_selectedDate),
-                  builder: (context, child) {
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: Color(0xFF4CAF50),
-                          onPrimary: Colors.white,
-                          surface: Color(0xFF2A2A2A),
-                          onSurface: Colors.white,
-                        ),
-                        dialogTheme: const DialogThemeData(
-                            backgroundColor: Color(0xFF1A1A1A)),
-                      ),
-                      child: child!,
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2024),
+                      lastDate: DateTime.now(),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.dark(
+                              primary: Color(0xFF4CAF50),
+                              onPrimary: Colors.white,
+                              surface: Color(0xFF2A2A2A),
+                              onSurface: Colors.white,
+                            ),
+                            dialogTheme: const DialogThemeData(
+                                backgroundColor: Color(0xFF1A1A1A)),
+                          ),
+                          child: child!,
+                        );
+                      },
                     );
+                    if (date != null) {
+                      setState(() {
+                        _selectedDate = DateTime(
+                          date.year,
+                          date.month,
+                          date.day,
+                          _selectedDate.hour,
+                          _selectedDate.minute,
+                        );
+                      });
+                    }
                   },
-                );
-                if (time != null) {
-                  // Combine date and time
-                  final newDateTime = DateTime(
-                    date.year,
-                    date.month,
-                    date.day,
-                    time.hour,
-                    time.minute,
-                  );
-                  setState(() => _selectedDate = newDateTime);
-                }
-              }
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3A3A3A),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_month,
-                    color: Color(0xFF4CAF50),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      DateFormat('MMM d, yyyy, HH:mm').format(_selectedDate),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3A3A3A),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_month,
+                          color: Color(0xFF4CAF50),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            DateFormat('MMM d, yyyy').format(_selectedDate),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color(0xFF9E9E9E),
+                          size: 14,
+                        ),
+                      ],
                     ),
                   ),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Color(0xFF9E9E9E),
-                    size: 16,
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.dark(
+                              primary: Color(0xFF4CAF50),
+                              onPrimary: Colors.white,
+                              surface: Color(0xFF2A2A2A),
+                              onSurface: Colors.white,
+                            ),
+                            dialogTheme: const DialogThemeData(
+                                backgroundColor: Color(0xFF1A1A1A)),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (time != null) {
+                      setState(() {
+                        _selectedDate = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month,
+                          _selectedDate.day,
+                          time.hour,
+                          time.minute,
+                        );
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3A3A3A),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          color: Color(0xFF4CAF50),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            DateFormat('HH:mm').format(_selectedDate),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color(0xFF9E9E9E),
+                          size: 14,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
