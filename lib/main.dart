@@ -150,6 +150,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  final GlobalKey _historyKey = GlobalKey();
 
   void _switchToCalculatorTab() {
     setState(() {
@@ -157,11 +158,20 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _onTabSelected(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   late final List<Widget> _screens = [
     const HomeScreen(),
     const CalculatorScreen(),
     const ProductsScreen(),
-    HistoryScreen(onSwitchToCalculator: _switchToCalculatorTab),
+    HistoryScreen(
+      key: _historyKey,
+      onSwitchToCalculator: _switchToCalculatorTab,
+    ),
   ];
 
   @override
@@ -183,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
+          onTap: _onTabSelected,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded),

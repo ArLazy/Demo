@@ -17,39 +17,15 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
-  List<BjuRecord> _records = [];
-  bool _isLoading = true;
   DateTime _selectedDate = DateTime.now();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRecords();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh records when navigating back to this tab
-    _loadRecords();
-  }
-
-  Future<void> _loadRecords() async {
-    final records = await _dbHelper.getAllBjuRecords();
-    setState(() {
-      _records = records;
-      _isLoading = false;
-    });
-  }
 
   Future<void> _deleteRecord(int recordId) async {
     await _dbHelper.deleteBjuRecord(recordId);
-    await _loadRecords();
   }
 
-  Map<String, List<BjuRecord>> _groupRecordsByDate() {
+  Map<String, List<BjuRecord>> _groupRecordsByDate(List<BjuRecord> records) {
     final grouped = <String, List<BjuRecord>>{};
-    for (var record in _records) {
+    for (var record in records) {
       final dateKey = DateFormat('yyyy-MM-dd').format(record.dateTime);
       if (!grouped.containsKey(dateKey)) {
         grouped[dateKey] = [];
@@ -175,18 +151,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF4CAF50)))
-          : _buildBody(),
+      body: StreamBuilder<void>(
+        stream: _dbHelper.recordsStream,
+        builder: (context, snapshot) {
+          return FutureBuilder<List<BjuRecord>>(
+            future: _loadRecords(),
+            builder: (context, futureSnapshot) {
+              final records = futureSnapshot.data ?? [];
+              return _buildBody(records);
+            },
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildBody() {
-    if (_records.isEmpty) {
+  Future<List<BjuRecord>> _loadRecords() async {
+    return await _dbHelper.getAllBjuRecords();
+  }
+
+  Widget _buildBody(List<BjuRecord> records) {
+    if (records.isEmpty) {
       return _buildEmptyState();
     }
-    return _buildHistoryList();
+    return _buildHistoryList(records);
   }
 
   Widget _buildEmptyState() {
@@ -240,8 +228,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildHistoryList() {
-    final grouped = _groupRecordsByDate();
+  Widget _buildHistoryList(List<BjuRecord> records) {
+    final grouped = _groupRecordsByDate(records);
     final selectedDateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
     if (!grouped.containsKey(selectedDateKey)) {

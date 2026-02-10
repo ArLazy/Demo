@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -10,8 +11,11 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
   static bool _initialized = false;
+  final _recordsStreamController = StreamController<void>.broadcast();
 
   DatabaseHelper._init();
+
+  Stream<void> get recordsStream => _recordsStreamController.stream;
 
   bool get isWeb => kIsWeb;
 
@@ -369,7 +373,9 @@ class DatabaseHelper {
 
     try {
       final db = await database;
-      return await db.insert('bju_records', record.toMap());
+      final result = await db.insert('bju_records', record.toMap());
+      _recordsStreamController.add(null);
+      return result;
     } catch (e) {
       debugPrint('Error inserting BJU record: $e');
       return -1;
@@ -417,11 +423,13 @@ class DatabaseHelper {
 
     try {
       final db = await database;
-      return await db.delete(
+      final result = await db.delete(
         'bju_records',
         where: 'id = ?',
         whereArgs: [id],
       );
+      _recordsStreamController.add(null);
+      return result;
     } catch (e) {
       debugPrint('Error deleting BJU record: $e');
       return 0;
