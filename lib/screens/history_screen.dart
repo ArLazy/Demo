@@ -19,6 +19,11 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   DateTime _selectedDate = DateTime.now();
+  
+  // Track temporarily removed records for undo functionality
+  final Map<int, BjuRecord> _temporarilyRemovedRecords = {};
+  // Track deletion status to prevent deletion if undo is pressed
+  final Set<int> _shouldDeleteRecords = {};
 
   Future<void> _deleteRecord(int recordId) async {
     await _dbHelper.deleteBjuRecord(recordId);
@@ -43,10 +48,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final grouped = <String, List<BjuRecord>>{};
 
     for (var record in dayRecords) {
-      if (!grouped.containsKey(record.mealType)) {
-        grouped[record.mealType] = [];
+      // Skip temporarily removed records
+      if (!_temporarilyRemovedRecords.containsKey(record.id!)) {
+        if (!grouped.containsKey(record.mealType)) {
+          grouped[record.mealType] = [];
+        }
+        grouped[record.mealType]!.add(record);
       }
-      grouped[record.mealType]!.add(record);
     }
 
     final sortedGrouped = <String, List<BjuRecord>>{};
@@ -79,10 +87,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Map<String, dynamic> _calculateDailyTotals(List<BjuRecord> dayRecords) {
     double protein = 0, fat = 0, carbs = 0, calories = 0;
     for (var record in dayRecords) {
-      protein += record.protein;
-      fat += record.fat;
-      carbs += record.carbs;
-      calories += record.calories;
+      // Skip temporarily removed records
+      if (!_temporarilyRemovedRecords.containsKey(record.id!)) {
+        protein += record.protein;
+        fat += record.fat;
+        carbs += record.carbs;
+        calories += record.calories;
+      }
     }
     return {
       'protein': protein,
@@ -95,10 +106,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Map<String, dynamic> _calculateMealTotals(List<BjuRecord> records) {
     double protein = 0, fat = 0, carbs = 0, calories = 0;
     for (var record in records) {
-      protein += record.protein;
-      fat += record.fat;
-      carbs += record.carbs;
-      calories += record.calories;
+      // Skip temporarily removed records
+      if (!_temporarilyRemovedRecords.containsKey(record.id!)) {
+        protein += record.protein;
+        fat += record.fat;
+        carbs += record.carbs;
+        calories += record.calories;
+      }
     }
     return {
       'protein': protein,
@@ -172,10 +186,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildBody(List<BjuRecord> records) {
-    if (records.isEmpty) {
+    // Filter out temporarily removed records
+    final filteredRecords = records.where((record) => 
+        !_temporarilyRemovedRecords.containsKey(record.id!)).toList();
+        
+    if (filteredRecords.isEmpty) {
       return _buildEmptyState();
     }
-    return _buildHistoryList(records);
+    return _buildHistoryList(filteredRecords);
   }
 
   Widget _buildEmptyState() {
@@ -630,39 +648,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      confirmDismiss: (direction) async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: const Color(0xFF2A2A2A),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
-              'Delete Record?',
-              style: TextStyle(color: Colors.white),
-            ),
-            content: const Text(
-              'Are you sure you want to delete this record?',
-              style: TextStyle(color: Colors.white70),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: Colors.white70)),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Delete'),
-              ),
-            ],
+      onDismissed: (direction) {
+        // Immediately update the state to remove the item from the UI
+        setState(() {
+          // Temporarily remove the record from the UI by adding it to the removed records map
+          _temporarilyRemovedRecords[record.id!] = record;
+          // Mark this record for potential deletion
+          _shouldDeleteRecords.add(record.id!);
+        });
+        
+        // Clear any existing snack bar to prevent conflicts
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+        
+        // Show snackbar with undo option
+        final snackBar = SnackBar(
+          content: const Text('Record deleted', style: TextStyle(color: Colors.white)), // VISIBLE TEXT
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: const Color(0xFF2A2A2A), // Dark grey background to match theme
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24), // Add margin to avoid touching edges
+          action: SnackBarAction( // VISIBLE BUTTON
+            label: 'UNDO',
+            textColor: Colors.green,
+            onPressed: () {
+              // Restore the record if undo is pressed
+              _restoreRecord(record);
+            },
           ),
+          duration: const Duration(seconds: 4), // AUTO-HIDE - Explicit Duration
         );
-        if (confirmed == true) {
-          await _deleteRecord(record.id!);
-        }
-        return confirmed;
+        
+        // The Controller: Store the snackBar in a variable
+        final controller = ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        
+        // The Database Trigger: Handle deletion when snackbar closes
+        controller.closed.then((reason) {
+          if (reason != SnackBarClosedReason.action && _shouldDeleteRecords.contains(record.id!) && mounted) {
+            _deleteRecord(record.id!); // Database deletion triggered here
+            // Remove from tracking sets after deleting from DB
+            setState(() {
+              _temporarilyRemovedRecords.remove(record.id!);
+              _shouldDeleteRecords.remove(record.id!);
+            });
+          }
+        });
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -772,5 +801,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ],
     );
+  }
+  
+  void _restoreRecord(BjuRecord record) {
+    // STATE SYNC: Remove from temporarily removed records and deletion queue to restore it to the UI
+    setState(() {
+      _temporarilyRemovedRecords.remove(record.id!);
+      // Cancel the deletion by removing from the deletion tracking set
+      _shouldDeleteRecords.remove(record.id!);
+    });
   }
 }
