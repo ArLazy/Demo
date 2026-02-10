@@ -3,9 +3,12 @@ import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/product.dart';
 import '../models/bju_record.dart';
+import '../main.dart' as main_app;
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+  final DateTime? initialDate;
+
+  const CalculatorScreen({super.key, this.initialDate});
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -19,16 +22,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Map<String, dynamic>? _calculatedBJU;
   bool _isLoading = true;
   String? _errorMessage;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   String _selectedMealType = 'Snack';
+  DateTime? _lastGlobalDate;
 
   @override
   void initState() {
-    print(
-        '[CalculatorScreen] initState() called - Initializing CalculatorScreen');
     super.initState();
-    print('[CalculatorScreen] Calling _loadProducts() from initState...');
+    _selectedDate = widget.initialDate ?? DateTime.now();
+    _lastGlobalDate = main_app.selectedDateForCalculation;
     _loadProducts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_lastGlobalDate != main_app.selectedDateForCalculation) {
+      setState(() {
+        _selectedDate = main_app.selectedDateForCalculation;
+        _lastGlobalDate = main_app.selectedDateForCalculation;
+      });
+    }
   }
 
   Future<void> _loadProducts() async {

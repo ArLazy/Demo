@@ -5,6 +5,8 @@ import 'screens/products_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
 
+DateTime selectedDateForCalculation = DateTime.now();
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
@@ -151,35 +153,46 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final GlobalKey _historyKey = GlobalKey();
+  DateTime? _preselectedDate;
 
-  void _switchToCalculatorTab() {
+  void _switchToCalculatorTab([DateTime? date]) {
     setState(() {
       _currentIndex = 1;
+      _preselectedDate = date;
     });
   }
 
   void _onTabSelected(int index) {
     setState(() {
       _currentIndex = index;
+      if (index == 1) {
+        _preselectedDate = null;
+        selectedDateForCalculation = DateTime.now();
+      }
     });
   }
 
-  late final List<Widget> _screens = [
-    const HomeScreen(),
-    const CalculatorScreen(),
-    const ProductsScreen(),
-    HistoryScreen(
-      key: _historyKey,
-      onSwitchToCalculator: _switchToCalculatorTab,
-    ),
-  ];
+  Widget _getCalculatorScreen() {
+    return CalculatorScreen(
+      key: ValueKey(_preselectedDate?.millisecondsSinceEpoch ?? 'now'),
+      initialDate: _preselectedDate,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: [
+          const HomeScreen(),
+          _getCalculatorScreen(),
+          const ProductsScreen(),
+          HistoryScreen(
+            key: _historyKey,
+            onSwitchToCalculator: _switchToCalculatorTab,
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

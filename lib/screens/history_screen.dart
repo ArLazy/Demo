@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/bju_record.dart';
+import '../main.dart' as main_app;
 
 class HistoryScreen extends StatefulWidget {
-  final VoidCallback onSwitchToCalculator;
+  final void Function(DateTime date) onSwitchToCalculator;
 
   const HistoryScreen({
     super.key,
@@ -217,7 +218,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
-                onPressed: widget.onSwitchToCalculator,
+                onPressed: () {
+                  main_app.selectedDateForCalculation = _selectedDate;
+                  widget.onSwitchToCalculator(_selectedDate);
+                },
                 icon: const Icon(Icons.calculate_rounded),
                 label: const Text('Calculate Now'),
               ),
@@ -473,7 +477,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
-                onPressed: widget.onSwitchToCalculator,
+                onPressed: () {
+                  main_app.selectedDateForCalculation = _selectedDate;
+                  widget.onSwitchToCalculator(_selectedDate);
+                },
                 icon: const Icon(Icons.calculate_rounded),
                 label: const Text('Calculate Now'),
               ),
